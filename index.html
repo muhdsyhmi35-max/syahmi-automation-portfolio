@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muhammad Syahmi — Manufacturing & Automation</title>
+  <meta name="description" content="Manufacturing & automation portfolio — editable layout, text, and multi-photo projects." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=18" />
+</head>
+<body>
+  <div id="top" class="page-top" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="editor-bar" id="editor-bar" hidden>
+    <div class="editor-bar-left">
+      <strong>Edit mode</strong>
+      <span>Click text to edit · drag blocks to move · add multiple photos</span>
+    </div>
+    <div class="editor-bar-actions">
+      <button type="button" id="btn-add-project" class="editor-btn">Add project</button>
+      <button type="button" id="btn-export" class="editor-btn">Export</button>
+      <label class="editor-btn" for="import-file">Import<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+      <button type="button" id="btn-reset" class="editor-btn editor-btn-danger">Reset</button>
+      <button type="button" id="btn-save" class="editor-btn editor-btn-primary">Save</button>
+      <button type="button" id="btn-done" class="editor-btn">Done</button>
+    </div>
+  </div>
+
+  <button type="button" class="edit-fab" id="btn-edit" title="Customize portfolio" hidden>Customize</button>
+
+  <header class="site-header">
+    <a class="logo" href="#top" data-edit="logo" data-movable="logo">SYAHMI</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#expertise">Expertise</a>
+      <a href="#projects">Projects</a>
+      <a href="#experience">Experience</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <main id="app"></main>
+
+  <footer class="site-footer">
+    <span>© <span id="year"></span> <span data-edit="footerName">Muhammad Syahmi Abdul Manan</span></span>
+    <a href="#top" id="back-to-top">Back to top</a>
+  </footer>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <div class="lightbox-backdrop" aria-hidden="true"></div>
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">Close</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous">‹</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-img" alt="" />
+      <figcaption id="lightbox-counter" class="lightbox-counter"></figcaption>
+    </figure>
+    <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next">›</button>
+  </div>
+
+  <script src="data.js?v=18"></script>
+  <script src="script.js?v=18"></script>
+</body>
+</html>

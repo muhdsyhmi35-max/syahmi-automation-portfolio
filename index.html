@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=18" />
+  <link rel="stylesheet" href="styles.css?v=51" />
 </head>
 <body>
   <div id="top" class="page-top" aria-hidden="true"></div>
@@ -17,12 +17,66 @@
   <div class="editor-bar" id="editor-bar" hidden>
     <div class="editor-bar-left">
       <strong>Edit mode</strong>
-      <span>Click text to edit · drag blocks to move · add multiple photos</span>
+      <span>Click any text · Font/Box W/H to resize · drag edge handles · drag blocks to move</span>
+    </div>
+    <div class="editor-typo" id="editor-typo">
+      <label>Heading font
+        <select id="typo-display" aria-label="Heading font">
+          <option value="Big Shoulders Display">Big Shoulders</option>
+          <option value="Oswald">Oswald</option>
+          <option value="Bebas Neue">Bebas Neue</option>
+          <option value="Archivo Black">Archivo Black</option>
+          <option value="Space Grotesk">Space Grotesk</option>
+          <option value="Syne">Syne</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Playfair Display">Playfair Display</option>
+        </select>
+      </label>
+      <label>Body font
+        <select id="typo-body" aria-label="Body font">
+          <option value="Sora">Sora</option>
+          <option value="DM Sans">DM Sans</option>
+          <option value="Manrope">Manrope</option>
+          <option value="IBM Plex Sans">IBM Plex Sans</option>
+          <option value="Source Sans 3">Source Sans 3</option>
+          <option value="Inter">Inter</option>
+          <option value="Lora">Lora</option>
+        </select>
+      </label>
+      <label>Name %
+        <input id="typo-brand" type="number" min="70" max="160" step="5" value="100" aria-label="Name text size percent" />
+      </label>
+      <label>Headings %
+        <input id="typo-heading" type="number" min="70" max="160" step="5" value="100" aria-label="Heading text size percent" />
+      </label>
+      <label>Body %
+        <input id="typo-body-scale" type="number" min="80" max="140" step="5" value="100" aria-label="Body text size percent" />
+      </label>
+      <div class="editor-selected-size" id="selected-size-panel" hidden>
+        <span class="selected-size-label">Selected text</span>
+        <div class="selected-size-controls">
+          <button type="button" class="editor-btn" id="size-minus" aria-label="Smaller">−</button>
+          <label>Font
+            <input id="typo-selected-px" type="number" min="10" max="180" step="1" value="16" aria-label="Selected text size in pixels" />
+          </label>
+          <button type="button" class="editor-btn" id="size-plus" aria-label="Larger">+</button>
+          <label>Box W
+            <input id="typo-selected-box-w" type="number" min="60" max="1200" step="10" value="" placeholder="auto" aria-label="Text box width in pixels" />
+          </label>
+          <label>Box H
+            <input id="typo-selected-box-h" type="number" min="0" max="900" step="10" value="" placeholder="auto" aria-label="Text box height in pixels" />
+          </label>
+          <button type="button" class="editor-btn" id="size-reset" title="Reset font size">Font reset</button>
+          <button type="button" class="editor-btn" id="box-reset" title="Reset text box width/height">Box reset</button>
+        </div>
+      </div>
     </div>
     <div class="editor-bar-actions">
       <button type="button" id="btn-add-project" class="editor-btn">Add project</button>
       <button type="button" id="btn-export" class="editor-btn">Export</button>
       <label class="editor-btn" for="import-file">Import<input id="import-file" type="file" accept="application/json,.json" hidden /></label>
+      <button type="button" id="btn-undo" class="editor-btn" disabled title="Undo last change (Ctrl+Z)">Undo</button>
+      <button type="button" id="btn-redo" class="editor-btn" disabled title="Redo (Ctrl+Y)">Redo</button>
       <button type="button" id="btn-reset" class="editor-btn editor-btn-danger">Reset</button>
       <button type="button" id="btn-save" class="editor-btn editor-btn-primary">Save</button>
       <button type="button" id="btn-done" class="editor-btn">Done</button>
@@ -30,6 +84,32 @@
   </div>
 
   <button type="button" class="edit-fab" id="btn-edit" title="Customize portfolio" hidden>Customize</button>
+
+  <div class="auth-modal" id="auth-modal" hidden>
+    <div class="auth-modal-backdrop" data-auth-close aria-hidden="true"></div>
+    <div class="auth-modal-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <p class="auth-kicker">Restricted</p>
+      <h2 id="auth-title" class="auth-title">Enter password</h2>
+      <p class="auth-lead">Customization is locked. Enter the password to continue.</p>
+      <form id="auth-form" class="auth-form" autocomplete="off">
+        <label class="auth-label" for="auth-password">Password</label>
+        <input
+          type="password"
+          id="auth-password"
+          class="auth-input"
+          name="password"
+          required
+          autocomplete="current-password"
+          placeholder="••••••••"
+        />
+        <p class="auth-error" id="auth-error" hidden>Incorrect password. Try again.</p>
+        <div class="auth-actions">
+          <button type="button" class="btn btn-ghost" data-auth-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Unlock</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <header class="site-header">
     <a class="logo" href="#top" data-edit="logo" data-movable="logo">SYAHMI</a>
@@ -63,7 +143,12 @@
     <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next">›</button>
   </div>
 
-  <script src="data.js?v=18"></script>
-  <script src="script.js?v=18"></script>
+  <div class="cs-modal" id="cs-modal" hidden>
+    <div class="cs-modal-backdrop" data-cs-close-backdrop aria-hidden="true"></div>
+    <div class="cs-modal-shell" id="cs-modal-panel" role="dialog" aria-modal="true" aria-label="Case study"></div>
+  </div>
+
+  <script src="data.js?v=51"></script>
+  <script src="script.js?v=51"></script>
 </body>
 </html>

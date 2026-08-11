@@ -420,10 +420,35 @@
     });
   }
 
+  async function loadPublishedBundle() {
+    try {
+      const res = await fetch("portfolio-published.json", { cache: "no-store" });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (_) {
+      return null;
+    }
+  }
+
   async function loadState() {
+    const published = await loadPublishedBundle();
+    const publishedVersion = Number(published && published.publishedVersion) || 0;
+
     try {
       const fromIdb = await idbGet();
       if (fromIdb) {
+        const savedPublished = Number(fromIdb.publishedVersion) || 0;
+        // Newer published bundle replaces stale browser saves on GitHub Pages
+        if (published && publishedVersion > savedPublished) {
+          const next = normalizeState(published);
+          next.publishedVersion = publishedVersion;
+          try {
+            await idbSet(next);
+          } catch (_) {
+            /* ignore */
+          }
+          return next;
+        }
         const normalized = normalizeState(fromIdb);
         if ((Number(fromIdb.layoutVersion) || 0) < 5) {
           try {
@@ -438,6 +463,17 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        const savedPublished = Number(parsed.publishedVersion) || 0;
+        if (published && publishedVersion > savedPublished) {
+          const next = normalizeState(published);
+          next.publishedVersion = publishedVersion;
+          try {
+            await idbSet(next);
+          } catch (_) {
+            /* ignore */
+          }
+          return next;
+        }
         const normalized = normalizeState(parsed);
         try {
           await idbSet(normalized);
@@ -445,6 +481,12 @@
           /* ignore migrate write errors */
         }
         return normalized;
+      }
+
+      if (published) {
+        const next = normalizeState(published);
+        next.publishedVersion = publishedVersion;
+        return next;
       }
     } catch (err) {
       console.error("Load failed:", err);
@@ -3581,13 +3623,7 @@
     historyLocked = false;
   });
   btnExport.addEventListener("click", () => {
-    syncEditableToState();
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "syahmi-portfolio.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
+    downloadPublishedState();
   });
   importFile.addEventListener("change", async () => {
     const file = importFile.files && importFile.files[0];
@@ -3597,6 +3633,7 @@
       const parsed = JSON.parse(text);
       historyLocked = true;
       state = normalizeState(parsed);
+      if (parsed.publishedVersion) state.publishedVersion = Number(parsed.publishedVersion) || Date.now();
       dirty = true;
       resetHistoryFromState();
       await saveState();
@@ -3694,10 +3731,39 @@
     }
   });
 
+  function downloadPublishedState() {
+    syncEditableToState();
+    const payload = {
+      ...clone(state),
+      publishedVersion: Date.now()
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "portfolio-published.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return payload;
+  }
+
   async function boot() {
     state = await loadState();
     resetHistoryFromState();
     render();
+    const params = new URLSearchParams(location.search);
+    if (params.get("export") === "1") {
+      // Give IndexedDB/render a tick, then download the local customized state
+      setTimeout(() => {
+        try {
+          const payload = downloadPublishedState();
+          const photos = (payload.projects && payload.projects.items || []).reduce((n, p) => n + ((p.photos || []).length), 0);
+          document.title = `Exported · ${photos} project photos · save this JSON into the project folder`;
+        } catch (err) {
+          console.error(err);
+          alert("Export failed. Open Customize and use Export publish file.");
+        }
+      }, 400);
+    }
   }
 
   document.addEventListener("paste", async (e) => {
